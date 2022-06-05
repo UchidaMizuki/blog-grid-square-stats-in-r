@@ -12,15 +12,20 @@ grid80km <- grid_80km(5339)
 unzip("station_2019/N02-19_GML.zip",
       exdir = "station_2019")
 
-station_2019 <- read_sf("station_2019/N02-19_Station.geojson") |>
+station_5339_2019 <- read_sf("station_2019/N02-19_Station.geojson") |>
   st_centroid() |>
-  rename(line = `路線名`,
+  rename(railway_type = `鉄道区分`,
+         line = `路線名`,
          company = `運営会社`,
          station = `駅名`) |>
-  select(line, company, station) |>
+  select(railway_type, line, company, station) |>
+
+  # Regular railways only
+  filter(railway_type %in% c("11", "12")) |>
+
   mutate(grid80km = geometry |>
            geometry_to_grid("80km")) |>
   filter(grid80km == .env$grid80km) |>
-  select(!grid80km)
+  select(!c(railway_type, grid80km))
 
-write_sf(station_2019, "station_2019.gpkg")
+write_sf(station_5339_2019, "station_5339_2019.gpkg")
